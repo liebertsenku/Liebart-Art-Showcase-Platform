@@ -20,7 +20,7 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Handle an incoming authenticated request.
      */
     public function store(LoginRequest $request): RedirectResponse
     {
@@ -28,7 +28,27 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // === LOGIKA REDIRECT KUSTOM ANDA ===
+        $user = $request->user();
+
+        if ($user->isAdmin()) {
+            // Admin SELALU ke Admin Dashboard
+            return redirect()->intended(route('admin.dashboard'));
+        }
+
+        if ($user->isCurator()) {
+            if ($user->isApproved()) {
+                // Curator (Approved) ke Curator Dashboard
+                return redirect()->intended(route('curator.dashboard'));
+            } else {
+                // Curator (Pending) SELALU ke halaman Pending
+                return redirect()->route('curator.pending');
+            }
+        }
+        
+        // Default untuk Member
+        return redirect()->intended('/dashboard');
+        // ===================================
     }
 
     /**
