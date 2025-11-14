@@ -2,6 +2,18 @@
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
+        <!-- role-->
+        <div class="mt-4">
+            <x-input-label for="role" :value="__('Register as')" />
+            <select id="role" name="role" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                <option value="member" {{ old('role') == 'member' ? 'selected' : '' }}>Member (Creator)</option>
+                <option value="curator" {{ old('role') == 'curator' ? 'selected' : '' }}>Curator (Brand/Community)</option>
+            </select>
+            <x-input-error :messages="$errors->get('role')" class="mt-2" />
+        </div>
+
+
+
         <!-- Name -->
         <div>
             <x-input-label for="name" :value="__('Name')" />

@@ -28,23 +28,35 @@ class RegisteredUserController extends Controller
      * @throws \Illuminate\Validation\ValidationException
      */
     public function store(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+{
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        'role' => ['required', 'string', 'in:member,curator'], // Validasi role
+    ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+    // Tentukan status berdasarkan role
+    $status = $request->role === 'curator' ? 'pending' : 'active';
 
-        event(new Registered($user));
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'role' => $request->role, // Simpan role
+        'status' => $status,         // Simpan status
+    ]);
 
-        Auth::login($user);
+    event(new Registered($user));
 
-        return redirect(route('dashboard', absolute: false));
+    Auth::login($user);
+
+    // Setelah login, arahkan ke redirect yang benar
+    // Kita akan tangani ini di Langkah 5, tapi untuk sekarang:
+    if ($user->isPending()) {
+        return redirect()->route('curator.pending'); // Arahkan ke halaman pending
     }
+
+   return redirect('/dashboard');
+}
 }
