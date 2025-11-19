@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
         // Panggil seeder admin kita di sini
         $this->call([
             AdminUserSeeder::class,
+            CategorySeeder::class,   
+            MemberUserSeeder::class,   
         ]);
 
         // Anda bisa tambahkan seeder lain di sini nanti

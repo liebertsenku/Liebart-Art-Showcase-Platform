@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ArtworkController; // <-- PASTIKAN BARIS INI ADA
+use App\Http\Controllers\ArtworkPublicController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CuratorPendingController; // <--- Tambahkan ini
 
@@ -89,5 +91,23 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Route::resource('/categories', AdminCategoryController::class);
     // Route::get('/moderation', [AdminModerationController::class, 'index'])->name('moderation.queue');
 });
+
+// == MEMBER (CREATOR) ROUTES ==
+Route::middleware(['auth', 'role:member'])->prefix('member')->name('member.')->group(function () {
+    // Route ini akan menangani:
+    // GET /member/artworks (index)
+    // GET /member/artworks/create (create)
+    // POST /member/artworks (store)
+    // GET /member/artworks/{artwork} (show) -> redirect ke publik
+    // GET /member/artworks/{artwork}/edit (edit)
+    // PUT/PATCH /member/artworks/{artwork} (update)
+    // DELETE /member/artworks/{artwork} (destroy)
+    Route::resource('artworks', ArtworkController::class);
+});
+
+
+// == PUBLIC ROUTES ==
+// Route publik untuk melihat detail artwork
+Route::get('/artworks/{artwork}', [ArtworkPublicController::class, 'show'])->name('artworks.show');
 
 require __DIR__.'/auth.php';
