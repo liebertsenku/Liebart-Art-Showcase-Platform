@@ -14,7 +14,15 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased">
+    <body class="font-sans antialiased bg-[#F5F4F2]">
+        
+        @include('layouts.navigation')
+
+        <main class="pt-20">
+            {{ $slot }}
+        </main>
+
+    
         <div class="min-h-screen bg-gray-100">
             @include('layouts.navigation')
 
