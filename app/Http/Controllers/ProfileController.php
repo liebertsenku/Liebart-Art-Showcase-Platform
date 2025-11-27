@@ -3,16 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\User; // <--- Import Model User
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile form.
+     * Menampilkan halaman profil publik (Portfolio Style).
+     * Diakses via: /member/{id}
+     */
+    public function show($id): View
+    {
+        // 1. Ambil User & Artwork
+        $user = User::with('artworks')->findOrFail($id);
+        
+        // 2. Data Dummy Statistik
+        $stats = [
+            'artworks'  => $user->artworks->count(),
+            'followers' => rand(100, 5000), 
+            'likes'     => rand(50, 10000),
+        ];
+
+        // 3. Tampilkan View Publik
+        return view('profile.show', compact('user', 'stats'));
+    }
+
+    /**
+     * Menampilkan form edit profile.
      */
     public function edit(Request $request): View
     {
@@ -22,23 +44,41 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's profile information.
+     * Update profil user (Foto, Bio, Nama, Email).
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        // --- UPDATE FOTO PROFIL ---
+        if ($request->hasFile('photo')) {
+            // Hapus foto lama
+            if ($user->profile_photo_path) {
+                Storage::disk('public')->delete($user->profile_photo_path);
+            }
+            // Simpan foto baru
+            $path = $request->file('photo')->store('profile-photos', 'public');
+            $user->profile_photo_path = $path;
         }
 
-        $request->user()->save();
+        // --- UPDATE BIO ---
+        if ($request->has('bio')) {
+            $user->bio = $request->input('bio');
+        }
+
+        // Reset verifikasi email jika berubah
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
     /**
-     * Delete the user's account.
+     * Hapus akun user.
      */
     public function destroy(Request $request): RedirectResponse
     {

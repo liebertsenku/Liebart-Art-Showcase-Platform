@@ -1,113 +1,133 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ArtworkController; // <-- PASTIKAN BARIS INI ADA
+use App\Http\Controllers\ArtworkController;
 use App\Http\Controllers\ArtworkPublicController;
+use App\Http\Controllers\Member\InteractionController;
+use App\Http\Controllers\Member\ChallengeSubmissionController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CuratorPendingController; // <--- Tambahkan ini
+use App\Http\Controllers\CuratorPendingController;
+use Illuminate\Support\Facades\Auth; // Jangan lupa import Auth
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
 */
+// 1. HOME = PUBLIC GALLERY
+Route::get('/', [ArtworkPublicController::class, 'index'])->name('home');
 
-// == 1. PUBLIC USER (GUEST) ROUTES ==
-// Ini adalah route yang bisa diakses siapa saja
-Route::get('/', function () {
-    return view('welcome'); // Ini Homepage (Public) Anda
-})->name('home');
+// 2. FAVORITES PAGE (Hanya untuk member login)
+Route::middleware('auth')->group(function () {
+    Route::get('/my-favorites', [ArtworkPublicController::class, 'favorites'])->name('artworks.favorites');
+});
 
-// Contoh route publik lainnya
-// Route::get('/artwork/{id}', [ArtworkController::class, 'show'])->name('artwork.detail');
-// Route::get('/creator/{id}', [CreatorProfileController::class, 'show'])->name('creator.profile');
-// Route::get('/challenge/{id}', [ChallengeController::class, 'show'])->name('challenge.detail');
+// Route::get('/member/{id}', [ProfileController::class, 'show'])->name('member.show');
 
+// == ROUTE MEMBER ARTWORKS (CRUD) ==
+Route::middleware(['auth', 'role:member']) // Cek login & role member
+    ->prefix('member')                     // URL awalan: /member/...
+    ->name('member.')                      // Nama route awalan: member....
+    ->group(function () {
+        
+        // Ini akan otomatis membuat route:
+        // index   -> member.artworks.index
+        // create  -> member.artworks.create
+        // store   -> member.artworks.store
+        // edit    -> member.artworks.edit
+        // update  -> member.artworks.update
+        // destroy -> member.artworks.destroy
+        Route::resource('artworks', ArtworkController::class);
+        
+    });
 
-// == 2. MEMBER (CREATOR) ROUTES ==
-// Breeze sudah menyediakan '/dashboard' untuk 'auth'
-// Kita bisa gunakan ini sebagai Homepage Member
-Route::get('/dashboard', function () {
-    
-    $user = Auth::user();
-
-    // 1. Jika Admin, tendang ke admin.dashboard
-    if ($user->isAdmin()) {
-        return redirect()->route('admin.dashboard');
-    }
-
-    // 2. Jika Curator, tendang ke dashboard-nya
-    if ($user->isCurator()) {
-        if ($user->isApproved()) {
-            return redirect()->route('curator.dashboard');
-        } else {
-            return redirect()->route('curator.pending');
-        }
-    }
-
-    // 3. Jika bukan keduanya, dia pasti Member. Tampilkan dashboard Member.
-    return view('dashboard');
-
-})->middleware(['auth']) // <-- Middleware-nya cukup 'auth'
-   ->name('dashboard');
+    Route::get('/artworks', [ArtworkPublicController::class, 'index'])->name('artworks.index');
 
 
-// Profile Management (dari Breeze)
+// == 1. ROOT ROUTE (DISPATCHER) ==
+// Route::get('/', function () {
+//     // A. Jika User Sudah Login
+//     if (Auth::check()) {
+//         $user = Auth::user();
+
+//         // Cek Role Admin
+//         if ($user->role === 'admin' || (method_exists($user, 'isAdmin') && $user->isAdmin())) { 
+//             return redirect()->route('admin.dashboard');
+//         }
+
+//         // Jika Member/Curator -> Ke Profil Sendiri
+//         return redirect()->route('member.show', $user->id);
+//     }
+
+//     // B. Jika Belum Login -> Ke Halaman Login
+//     return redirect()->route('login');
+// })->name('home');
+
+
+Route::get('/member/{id}', [ProfileController::class, 'show'])->name('profile.show');
+
+
+// == 2. ROUTE PUBLIK PROFILE (INI YANG HILANG SEBELUMNYA) ==
+// Route ini menangani halaman profil publik (Portfolio)
+// URL-nya /member/{id}, tapi nama routenya kita set 'profile.show' sesuai request Anda
+Route::get('/member/{id}', [ProfileController::class, 'show'])->name('member.show');
+
+
+// == 3. MEMBER (CREATOR) ROUTES ==
 Route::middleware(['auth'])->group(function () {
+    // Settings Profile (Edit, Update, Delete)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
-    // Route spesifik Member (My Artworks, My Favorites, dll)
-    // Route::get('/my-artworks', ...)->middleware('role:member');
 });
 
 
-// == 3. CURATOR ROUTES ==
-// Halaman 'Pending' (Hanya untuk curator pending)
+// == 4. CURATOR ROUTES ==
 Route::get('/curator/pending', [CuratorPendingController::class, 'index'])
-    ->middleware(['auth', 'role:curator', 'curator.pending']) // <--- Kunci dengan middleware
+    ->middleware(['auth', 'role:curator', 'curator.pending'])
     ->name('curator.pending');
 
-// Dashboard Curator (Hanya untuk curator approved)
 Route::middleware(['auth', 'role:curator', 'curator.approved'])->prefix('curator')->name('curator.')->group(function () {
     Route::get('/dashboard', function() {
-        return view('curator.dashboard'); // Ganti dengan Controller Anda
+        return view('curator.dashboard');
     })->name('dashboard');
-    
-    // CRUD Challenge
-    // Route::resource('/challenges', CuratorChallengeController::class);
 });
 
 
-// == 4. ADMIN ROUTES ==
+// == 5. ADMIN ROUTES ==
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', function() {
-        return view('admin.dashboard'); // Ganti dengan Controller Anda
+        return view('admin.dashboard');
     })->name('dashboard');
-    
-    // User Management, Category Management, Moderation
-    // Route::resource('/users', AdminUserController::class);
-    // Route::resource('/categories', AdminCategoryController::class);
-    // Route::get('/moderation', [AdminModerationController::class, 'index'])->name('moderation.queue');
 });
 
-// == MEMBER (CREATOR) ROUTES ==
+
+// == 6. ARTWORK CRUD ROUTES ==
 Route::middleware(['auth', 'role:member'])->prefix('member')->name('member.')->group(function () {
-    // Route ini akan menangani:
-    // GET /member/artworks (index)
-    // GET /member/artworks/create (create)
-    // POST /member/artworks (store)
-    // GET /member/artworks/{artwork} (show) -> redirect ke publik
-    // GET /member/artworks/{artwork}/edit (edit)
-    // PUT/PATCH /member/artworks/{artwork} (update)
-    // DELETE /member/artworks/{artwork} (destroy)
     Route::resource('artworks', ArtworkController::class);
 });
 
 
-// == PUBLIC ROUTES ==
-// Route publik untuk melihat detail artwork
+// == 7. PUBLIC ARTWORK DETAIL ==
 Route::get('/artworks/{artwork}', [ArtworkPublicController::class, 'show'])->name('artworks.show');
+
+Route::middleware(['auth', 'role:member'])->group(function () {
+    
+    // --- Interaksi Artwork ---
+    Route::post('/artworks/{artwork}/like', [InteractionController::class, 'toggleLike'])->name('artworks.like');
+    Route::post('/artworks/{artwork}/favorite', [InteractionController::class, 'toggleFavorite'])->name('artworks.favorite');
+    
+    // Komentar
+    Route::post('/artworks/{artwork}/comment', [InteractionController::class, 'storeComment'])->name('artworks.comment.store');
+    Route::delete('/comments/{comment}', [InteractionController::class, 'destroyComment'])->name('comments.destroy');
+    
+    // Report
+    Route::post('/artworks/{artwork}/report', [InteractionController::class, 'storeReport'])->name('artworks.report');
+
+    // --- Challenge Submission ---
+    Route::get('/challenges/{challenge}/submit', [ChallengeSubmissionController::class, 'create'])->name('challenges.submit.form');
+    Route::post('/challenges/{challenge}/submit', [ChallengeSubmissionController::class, 'store'])->name('challenges.submit.store');
+
+});
 
 require __DIR__.'/auth.php';

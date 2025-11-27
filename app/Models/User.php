@@ -82,4 +82,10 @@ class User extends Authenticatable
     {
         return $this->status === 'pending';
     }
+
+    public function likes() { return $this->belongsToMany(Artwork::class, 'likes'); }
+    public function favorites() { return $this->belongsToMany(Artwork::class, 'favorites'); }
+    // Helper untuk cek status
+    public function hasLiked(Artwork $artwork) { return $this->likes()->where('artwork_id', $artwork->id)->exists(); }
+    public function hasFavorited(Artwork $artwork) { return $this->favorites()->where('artwork_id', $artwork->id)->exists(); }
 }

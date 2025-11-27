@@ -47,7 +47,7 @@ class AuthenticatedSessionController extends Controller
         }
         
         // Default untuk Member
-        return redirect()->intended('/dashboard');
+        return redirect()->intended('/');
         // ===================================
     }
 
