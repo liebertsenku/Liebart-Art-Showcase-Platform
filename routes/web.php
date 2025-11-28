@@ -7,6 +7,11 @@ use App\Http\Controllers\Member\InteractionController;
 use App\Http\Controllers\Member\ChallengeSubmissionController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CuratorPendingController;
+use App\Http\Controllers\Admin\AdminModerationController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminCategoryController;
+use App\Http\Controllers\Admin\AdminChallengeController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use Illuminate\Support\Facades\Auth; // Jangan lupa import Auth
 
 /*
@@ -63,6 +68,29 @@ Route::middleware(['auth', 'role:member']) // Cek login & role member
 //     return redirect()->route('login');
 // })->name('home');
 
+// == ADMIN ROUTES ==
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    
+    // Dashboard Stats
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    // Resources
+    Route::resource('categories', AdminCategoryController::class);
+    Route::resource('challenges', AdminChallengeController::class);
+    
+    // Custom Route for removing challenge submission
+    Route::delete('/challenges/submission/{id}', [AdminChallengeController::class, 'destroySubmission'])->name('challenges.submission.destroy');
+
+    // 1. Moderation System
+    Route::get('/moderation', [AdminModerationController::class, 'index'])->name('moderation.index');
+    Route::post('/moderation/{report}/approve', [AdminModerationController::class, 'approve'])->name('moderation.approve');
+    Route::post('/moderation/{report}/reject', [AdminModerationController::class, 'reject'])->name('moderation.reject');
+
+    // 2. User Management
+    Route::resource('users', AdminUserController::class)->only(['index', 'show', 'destroy']);
+
+});
+
 
 Route::get('/member/{id}', [ProfileController::class, 'show'])->name('profile.show');
 
@@ -94,12 +122,12 @@ Route::middleware(['auth', 'role:curator', 'curator.approved'])->prefix('curator
 });
 
 
-// == 5. ADMIN ROUTES ==
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function() {
-        return view('admin.dashboard');
-    })->name('dashboard');
-});
+// // == 5. ADMIN ROUTES ==
+// Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+//     Route::get('/dashboard', function() {
+//         return view('admin.dashboard');
+//     })->name('dashboard');
+// });
 
 
 // == 6. ARTWORK CRUD ROUTES ==

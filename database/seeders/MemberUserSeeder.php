@@ -19,7 +19,7 @@ class MemberUserSeeder extends Seeder
         // Email: member@artshowcase.com
         // Pass: password
         User::firstOrCreate(
-            ['email' => 'member@artshowcase.com'],
+            ['email' => 'member@email.com'],
             [
                 'name' => 'Member Tes',
                 'password' => Hash::make('password'),
@@ -28,6 +28,18 @@ class MemberUserSeeder extends Seeder
                 'bio' => 'Ini adalah akun Member untuk keperluan testing. Suka mengunggah karya seni digital.'
             ]
         );
+
+        User::firstOrCreate(
+            ['email' => 'member2@email.com'],
+            [
+                'name' => 'Member Tes2 ',
+                'password' => Hash::make('password'),
+                'role' => 'member',
+                'status' => 'active',
+                'bio' => 'Ini adalah akun Member untuk keperluan testing. Suka mengunggah karya seni digital.'
+            ]
+        );
+
 
         // 2. Buat 10 Member acak menggunakan Factory
         // Factory akan otomatis mengisi role='member' dan status='active'
