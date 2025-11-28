@@ -14,9 +14,12 @@ return new class extends Migration
         Schema::create('challenges', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->string('slug')->unique();
             $table->text('description');
-            $table->dateTime('deadline');
-            $table->string('status')->default('active'); // active, closed
+            $table->string('cover_image')->nullable();
+            $table->dateTime('start_date');
+            $table->dateTime('end_date');
+            $table->string('status')->default('upcoming'); // upcoming, ongoing, ended
             $table->timestamps();
         });
     }
