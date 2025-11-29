@@ -40,6 +40,18 @@ class MemberUserSeeder extends Seeder
             ]
         );
 
+        User::firstOrCreate(
+            ['email' => 'member3@email.com'],
+            [
+                'name' => 'Member Tes3 ',
+                'password' => Hash::make('password'),
+                'role' => 'member',
+                'status' => 'active',
+                'bio' => 'Ini adalah akun Member untuk keperluan testing. Suka mengunggah karya seni digital.'
+            ]
+        );
+
+
 
         // 2. Buat 10 Member acak menggunakan Factory
         // Factory akan otomatis mengisi role='member' dan status='active'

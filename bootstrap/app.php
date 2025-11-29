@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\CheckRole::class,
             'curator.approved' => \App\Http\Middleware\CheckCuratorStatus::class,
             'curator.pending' => \App\Http\Middleware\CheckPendingCurator::class,
+            'curator.approved' => \App\Http\Middleware\EnsureCuratorIsApproved::class,
+            'role' => \App\Http\Middleware\EnsureUserHasRole::class, // Asumsi middleware role Anda bernama ini
         ]);
         // ===================================
 

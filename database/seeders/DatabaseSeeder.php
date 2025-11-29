@@ -17,10 +17,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminUserSeeder::class,
             CategorySeeder::class,   
-            MemberUserSeeder::class,   
+            MemberUserSeeder::class,
+            ArtworksTableSeeder::class,
+            // CuratorProfilesTableSeeder::class,
         ]);
-
-        // Anda bisa tambahkan seeder lain di sini nanti
-        // User::factory(10)->create(); 
     }
 }

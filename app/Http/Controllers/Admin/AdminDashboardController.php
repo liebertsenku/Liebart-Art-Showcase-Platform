@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Artwork;
 use App\Models\Category;
+use App\Models\CuratorProfile;
 use App\Models\ModerationReport;
 use App\Models\ChallengeSubmission;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,7 @@ class AdminDashboardController extends Controller
             'total_submissions' => ChallengeSubmission::count(),
             'reports_pending' => ModerationReport::where('status', 'pending')->count(),
             'reports_approved' => ModerationReport::where('status', 'approved')->count(),
+            'curators_pending' => CuratorProfile::where('status', 'pending')->count(),
         ];
 
         // 2. Top Artwork (Most Liked)

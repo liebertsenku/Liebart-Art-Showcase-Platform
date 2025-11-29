@@ -90,4 +90,15 @@ class User extends Authenticatable
     // Helper untuk cek status
     public function hasLiked(Artwork $artwork) { return $this->likes()->where('artwork_id', $artwork->id)->exists(); }
     public function hasFavorited(Artwork $artwork) { return $this->favorites()->where('artwork_id', $artwork->id)->exists(); }
+
+    public function curatorProfile()
+    {
+        return $this->hasOne(CuratorProfile::class);
+    }
+
+    // Helper untuk cek apakah curator sudah approved
+    public function isApprovedCurator()
+    {
+        return $this->role === 'curator' && $this->curatorProfile?->status === 'approved';
+    }
 }

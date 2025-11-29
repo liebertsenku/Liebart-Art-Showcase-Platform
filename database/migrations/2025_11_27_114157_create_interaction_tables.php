@@ -41,7 +41,7 @@ return new class extends Migration
         $table->foreignId('reporter_id')->constrained('users')->cascadeOnDelete();
         $table->foreignId('artwork_id')->constrained()->cascadeOnDelete();
         $table->string('reason'); // SARA, Plagiarisme, Nudity, dll
-        $table->enum('status', ['pending', 'reviewed', 'dismissed'])->default('pending');
+        $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
         $table->timestamps();
     });
 }

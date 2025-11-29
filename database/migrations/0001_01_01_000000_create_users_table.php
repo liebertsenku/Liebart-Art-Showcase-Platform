@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('password');
             
             // === KOLOM TAMBAHAN KITA ===
-            $table->enum('role', ['admin', 'member', 'curator'])->default('member');
+            $table->enum('role', ['admin', 'member', 'curator', 'curator_pending'])->default('member');
             $table->enum('status', ['active', 'pending'])->default('active');
             
             // Field untuk Profile Management (Member & Curator)
