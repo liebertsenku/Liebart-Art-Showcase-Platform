@@ -4,59 +4,78 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\CuratorProfile; // <--- Import Model CuratorProfile
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB; // <--- Import DB untuk Transaction
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
     public function create(): View
     {
         return view('auth.register');
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
     public function store(Request $request): RedirectResponse
-{
-    $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-        'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        'role' => ['required', 'string', 'in:member,curator'], // Validasi role
-    ]);
+    {
+        // 1. Validasi Dasar (User)
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => ['required', 'string', 'in:member,curator'],
+        ]);
 
-    // Tentukan status berdasarkan role
-    $status = $request->role === 'curator' ? 'pending' : 'active';
+        // 2. Validasi Tambahan (KHUSUS CURATOR)
+        if ($request->role === 'curator') {
+            $request->validate([
+                'organization_name' => ['required', 'string', 'max:255'],
+                'reason_for_applying' => ['required', 'string', 'min:10'],
+                'portfolio_link' => ['nullable', 'url'],
+            ]);
+        }
 
-    $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'role' => $request->role, // Simpan role
-        'status' => $status,         // Simpan status
-    ]);
+        // 3. Eksekusi Database (Gunakan Transaction agar aman)
+        DB::transaction(function () use ($request) {
+            
+            // Tentukan Role Database
+            // Jika dia pilih curator, statusnya harus 'curator_pending' dulu agar tidak langsung punya akses
+            $roleToSave = ($request->role === 'curator') ? 'curator_pending' : 'member';
 
-    event(new Registered($user));
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'role' => $roleToSave,
+            ]);
 
-    Auth::login($user);
+            // Jika Curator, Simpan Data Profilnya
+            if ($request->role === 'curator') {
+                CuratorProfile::create([
+                    'user_id' => $user->id,
+                    'organization_name' => $request->organization_name,
+                    'reason_for_applying' => $request->reason_for_applying,
+                    'portfolio_link' => $request->portfolio_link,
+                    'status' => 'pending', // Wajib pending
+                ]);
+            }
 
-    // Setelah login, arahkan ke redirect yang benar
-    // Kita akan tangani ini di Langkah 5, tapi untuk sekarang:
-    if ($user->isPending()) {
-        return redirect()->route('curator.pending'); // Arahkan ke halaman pending
+            event(new Registered($user));
+            Auth::login($user);
+        });
+
+        // 4. Redirect sesuai Role
+        // Jika curator, lempar ke halaman "Menunggu Persetujuan"
+        if ($request->role === 'curator') {
+            return redirect()->route('curator.pending_notice');
+        }
+
+        // Jika member biasa, lempar ke Home
+        return redirect(route('home', absolute: false));
     }
-
-   return redirect('/dashboard');
-}
 }

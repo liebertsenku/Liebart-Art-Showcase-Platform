@@ -1,5 +1,4 @@
-<?php
-
+<?php 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -8,8 +7,8 @@ use Carbon\Carbon;
 class Challenge extends Model
 {
     protected $fillable = [
-        'title', 'slug', 'description', 'cover_image', 
-        'start_date', 'end_date', 'status'
+        'title', 'slug', 'description', 'rules', 'prizes', 
+        'start_date', 'end_date', 'banner_image', 'curator_id', 'status'
     ];
 
     protected $casts = [
@@ -17,17 +16,28 @@ class Challenge extends Model
         'end_date' => 'datetime',
     ];
 
-    // Helper untuk status dinamis (Opsional, jika tidak ingin rely di DB column saja)
+    // Status dinamis
     public function getComputedStatusAttribute()
     {
-        $now = Carbon::now();
+        if ($this->status === 'draft') return 'draft';
+        $now = now();
         if ($now < $this->start_date) return 'upcoming';
         if ($now > $this->end_date) return 'ended';
-        return 'ongoing';
+        return 'active';
+    }
+
+    public function curator()
+    {
+        return $this->belongsTo(User::class, 'curator_id');
     }
 
     public function submissions()
     {
         return $this->hasMany(ChallengeSubmission::class);
+    }
+
+    public function winners()
+    {
+        return $this->hasMany(ChallengeWinner::class)->orderBy('position');
     }
 }

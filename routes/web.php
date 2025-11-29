@@ -12,7 +12,11 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminChallengeController;
 use App\Http\Controllers\Admin\AdminDashboardController;
-use Illuminate\Support\Facades\Auth; // Jangan lupa import Auth
+use App\Http\Controllers\CuratorRegistrationController;
+use App\Http\Controllers\Admin\AdminCuratorApprovalController;
+use App\Http\Controllers\Curator\CuratorChallengeController;
+use App\Http\Controllers\PublicChallengeController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -91,6 +95,74 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
 });
 
+// 1. REGISTRASI CURATOR (Guest / Public)
+Route::get('/curator/apply', [CuratorRegistrationController::class, 'showRegistrationForm'])->name('curator.register');
+Route::post('/curator/apply', [CuratorRegistrationController::class, 'register'])->name('curator.register.store');
+Route::get('/curator/pending', [CuratorRegistrationController::class, 'pendingNotice'])->name('curator.pending_notice');
+
+// 2. ADMIN APPROVAL (Admin Only)
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/curators', [AdminCuratorApprovalController::class, 'index'])->name('curators.index');
+    Route::post('/curators/{id}/approve', [AdminCuratorApprovalController::class, 'approve'])->name('curators.approve');
+    Route::post('/curators/{id}/reject', [AdminCuratorApprovalController::class, 'reject'])->name('curators.reject');
+});
+
+// 3. CURATOR DASHBOARD (Curator Only & Approved)
+// Middleware: auth + role:curator + curator.approved
+Route::middleware(['auth', 'role:curator', 'curator.approved'])->prefix('curator')->name('curator.')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('curator.dashboard.index');
+    })->name('dashboard');
+    
+    // Nanti CRUD Challenge Curator ditaruh di sini
+});
+
+// ROUTE CURATOR (Lanjutan dari sebelumnya)
+Route::middleware(['auth', 'role:curator', 'curator.approved'])
+    ->prefix('curator')
+    ->name('curator.')
+    ->group(function () {
+        
+        // Dashboard (sudah ada)
+        
+        // Challenge Management
+        Route::resource('challenges', CuratorChallengeController::class);
+        
+        // Winner Selection
+        Route::post('/challenges/{challenge}/winner', [CuratorChallengeController::class, 'selectWinner'])
+            ->name('challenges.select_winner');
+    });
+
+Route::get('/challenges', function() { return 'Public Challenge List'; })->name('public.challenges.index');
+Route::get('/challenges/{slug}', function() { return 'Public Challenge Detail'; })->name('public.challenges.show');
+
+// == PUBLIC CHALLENGE ROUTES (Bisa Diakses Guest) ==
+Route::get('/challenges', [PublicChallengeController::class, 'index'])->name('public.challenges.index');
+Route::get('/challenges/{slug}', [PublicChallengeController::class, 'show'])->name('public.challenges.show');
+
+// == MEMBER SUBMISSION ACTIONS ==
+Route::middleware(['auth', 'role:member'])->group(function () {
+    Route::post('/challenges/{id}/submit', [ChallengeSubmissionController::class, 'store'])->name('challenges.submit');
+    Route::delete('/challenges/submission/{id}', [ChallengeSubmissionController::class, 'destroy'])->name('challenges.submission.destroy');
+});
+
+Route::middleware(['auth', 'role:curator', 'curator.approved'])
+    ->prefix('curator')
+    ->name('curator.')
+    ->group(function () {
+        
+        // ... (Route Resource yang sudah ada)
+        Route::resource('challenges', \App\Http\Controllers\Curator\CuratorChallengeController::class);
+        
+        // --- TAMBAHKAN ROUTE INI ---
+        Route::post('/challenges/{challenge}/winner', [\App\Http\Controllers\Curator\CuratorChallengeController::class, 'selectWinner'])->name('challenges.select_winner');
+        Route::delete('/challenges/{challenge}/winner/{position}', [\App\Http\Controllers\Curator\CuratorChallengeController::class, 'removeWinner'])->name('challenges.remove_winner');
+        // ---------------------------
+
+        Route::post('/challenges/{challenge}/finish', [\App\Http\Controllers\Curator\CuratorChallengeController::class, 'finish'])
+            ->name('challenges.finish');
+    });
+
 
 Route::get('/member/{id}', [ProfileController::class, 'show'])->name('profile.show');
 
@@ -117,7 +189,7 @@ Route::get('/curator/pending', [CuratorPendingController::class, 'index'])
 
 Route::middleware(['auth', 'role:curator', 'curator.approved'])->prefix('curator')->name('curator.')->group(function () {
     Route::get('/dashboard', function() {
-        return view('curator.dashboard');
+        return view('curator.dashboard.index');
     })->name('dashboard');
 });
 
@@ -157,5 +229,10 @@ Route::middleware(['auth', 'role:member'])->group(function () {
     Route::post('/challenges/{challenge}/submit', [ChallengeSubmissionController::class, 'store'])->name('challenges.submit.store');
 
 });
+
+// Route untuk halaman "Menunggu Persetujuan" bagi Curator
+Route::get('/curator/pending', function () {
+    return view('curator.pending_notice');
+})->name('curator.pending_notice'); 
 
 require __DIR__.'/auth.php';
