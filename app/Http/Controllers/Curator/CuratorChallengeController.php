@@ -137,24 +137,29 @@ class CuratorChallengeController extends Controller
     // 8. SELECT WINNER
     public function selectWinner(Request $request, Challenge $challenge)
     {
-        // 1. Validasi Pemilik
-        if ($challenge->curator_id !== Auth::id()) {
-            abort(403, 'Unauthorized access.');
+        $this->authorizeAccess($challenge);
+
+        // ATURAN 1: TIDAK BISA UBAH JIKA SUDAH SELESAI
+        if ($challenge->computed_status === 'ended') {
+            return back()->with('error', 'Challenge has ended. Winners are locked and cannot be changed.');
         }
 
-        // 2. Validasi Input
         $request->validate([
             'submission_id' => 'required|exists:challenge_submissions,id',
             'position' => 'required|in:1,2,3',
         ]);
 
-        // 3. Validasi Submission milik Challenge ini
+        // Validasi submission milik challenge ini
         $submission = ChallengeSubmission::where('id', $request->submission_id)
             ->where('challenge_id', $challenge->id)
             ->firstOrFail();
 
-        // 4. Simpan / Update Pemenang
-        // Logic: Jika posisi 1 sudah ada, update dengan submission baru.
+        // ATURAN 2: SATU KARYA HANYA BOLEH SATU POSISI
+        ChallengeWinner::where('challenge_id', $challenge->id)
+            ->where('submission_id', $submission->id)
+            ->delete();
+
+        // Simpan Pemenang Baru (Otomatis menimpa jika posisi tersebut sudah ada isinya)
         ChallengeWinner::updateOrCreate(
             [
                 'challenge_id' => $challenge->id,
@@ -165,18 +170,7 @@ class CuratorChallengeController extends Controller
             ]
         );
 
-        // 5. Opsi Tambahan: Jika Juara 1, 2, 3 sudah lengkap, otomatis tutup challenge?
-        // (Opsional, tapi diminta di prompt)
-        $winnerCount = ChallengeWinner::where('challenge_id', $challenge->id)->count();
-        if ($winnerCount >= 3) {
-            // Kita bisa memaksa tanggal berakhir jadi hari ini agar statusnya jadi 'ended'
-            // Atau cukup biarkan tanggal aslinya.
-            // Di sini kita biarkan saja, karena status 'ended' biasanya based on date.
-            // Tapi kita beri notifikasi.
-            return back()->with('success', 'Winner selected! All podiums are filled.');
-        }
-
-        return back()->with('success', 'Winner for position #' . $request->position . ' selected successfully.');
+        return back()->with('success', 'Winner for position #' . $request->position . ' set successfully!');
     }
 
     // Helper: Pastikan hanya curator pemilik yg bisa akses
@@ -190,8 +184,11 @@ class CuratorChallengeController extends Controller
 
     public function removeWinner(Challenge $challenge, $position)
     {
-        if ($challenge->curator_id !== Auth::id()) {
-            abort(403);
+        $this->authorizeAccess($challenge);
+
+        // ATURAN 1: TIDAK BISA HAPUS JIKA SUDAH SELESAI
+        if ($challenge->computed_status === 'ended') {
+            return back()->with('error', 'Challenge has ended. Winners are locked.');
         }
 
         ChallengeWinner::where('challenge_id', $challenge->id)
