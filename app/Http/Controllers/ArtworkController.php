@@ -1,7 +1,5 @@
 <?php
 
-// app/Http/Controllers/ArtworkController.php
-
 namespace App\Http\Controllers;
 
 use App\Models\Artwork;
@@ -9,28 +7,15 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Requests\StoreArtworkRequest; // <-- Gunakan Form Request
-use App\Http\Requests\UpdateArtworkRequest; // <-- Gunakan Form Request
 
 class ArtworkController extends Controller
 {
-    /**
-     * Terapkan Policy ke semua metode resource secara otomatis.
-     */
-    public function __construct()
-    {
-        // 'artwork' adalah nama parameter di route
-        // 'store' tidak perlu dicek policy karena belum ada artwork
-        $this->authorizeResource(Artwork::class, 'artwork', [
-            'except' => ['index', 'create', 'store'],
-        ]);
-    }
-
     /**
      * Menampilkan daftar karya milik user yang sedang login.
      */
     public function index()
     {
+        // Ambil artwork hanya milik user yang sedang login
         $artworks = Auth::user()->artworks()->latest()->paginate(10);
         
         return view('member.artworks.index', compact('artworks'));
@@ -48,34 +33,53 @@ class ArtworkController extends Controller
     /**
      * Menyimpan karya baru ke database.
      */
-    public function store(StoreArtworkRequest $request)
+    public function store(Request $request)
     {
-        // 1. Handle File Upload
-        $path = $request->file('image')->store('artworks', 'public');
+        // 1. Validasi Input
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'tags' => 'nullable|string',
+            
+            // Logika: Image boleh kosong, TAPI jika kosong, description WAJIB ada (untuk Text Post)
+            'image' => 'nullable|image|max:2048', // Max 2MB
+            'description' => 'required_without:image|string', 
+        ], [
+            'description.required_without' => 'Please write a description/story if you are not uploading an image.',
+        ]);
 
-        // 2. Proses Tags (dari string "tag1,tag2" menjadi array)
-        $tags = $request->input('tags') ? explode(',', $request->input('tags')) : null;
+        // 2. Handle File Upload
+        $path = null;
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('artworks', 'public');
+        }
 
-        // 3. Buat Artwork
+        // 3. Proses Tags (String "tag1, tag2" -> Array ["tag1", "tag2"])
+        $tags = null;
+        if ($request->input('tags')) {
+            $tagsArray = explode(',', $request->input('tags'));
+            $tags = array_map('trim', $tagsArray); // Hapus spasi berlebih
+        }
+
+        // 4. Simpan ke Database
         Auth::user()->artworks()->create([
-            'title' => $request->input('title'),
-            'description' => $request->input('description'),
-            'category_id' => $request->input('category_id'),
+            'title' => $request->title,
+            'description' => $request->description,
+            'category_id' => $request->category_id,
             'image' => $path,
             'tags' => $tags,
         ]);
 
         return redirect()->route('member.artworks.index')
-                         ->with('success', 'Karya berhasil ditambahkan.');
+                         ->with('success', 'Artwork uploaded successfully.');
     }
 
     /**
-     * (Opsional) Menampilkan detail karya di area member.
-     * Anda bisa juga redirect ke route publik.
+     * Menampilkan detail karya (Redirect ke Public View).
      */
     public function show(Artwork $artwork)
     {
-        // Redirect ke halaman detail publik
+        // Redirect ke tampilan publik yang sudah bagus
         return redirect()->route('artworks.show', $artwork);
     }
 
@@ -84,39 +88,72 @@ class ArtworkController extends Controller
      */
     public function edit(Artwork $artwork)
     {
+        // Security: Pastikan hanya pemilik yang bisa edit
+        if ($artwork->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $categories = Category::orderBy('name')->get();
         
-        // Ubah tags dari array kembali ke string untuk form input
-        $artwork->tags_string = $artwork->tags ? implode(',', $artwork->tags) : '';
+        // Ubah array tags menjadi string (dipisah koma) untuk ditampilkan di input form
+        // Contoh: ["Digital", "Art"] -> "Digital, Art"
+        $tagsString = '';
+        if ($artwork->tags && is_array($artwork->tags)) {
+            $tagsString = implode(', ', $artwork->tags);
+        }
 
-        return view('member.artworks.edit', compact('artwork', 'categories'));
+        return view('member.artworks.edit', compact('artwork', 'categories', 'tagsString'));
     }
 
     /**
      * Mengupdate karya di database.
      */
-    public function update(UpdateArtworkRequest $request, Artwork $artwork)
+    public function update(Request $request, Artwork $artwork)
     {
-        $data = $request->validated();
-        
-        // 1. Handle File Upload (jika ada file baru)
+        // Security: Pastikan hanya pemilik yang bisa update
+        if ($artwork->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // 1. Validasi
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'tags' => 'nullable|string',
+            'image' => 'nullable|image|max:2048',
+            // Jika gambar lama kosong DAN tidak upload gambar baru -> deskripsi wajib
+            'description' => ($artwork->image ? 'nullable' : 'required_without:image') . '|string',
+        ]);
+
+        $data = [
+            'title' => $request->title,
+            'description' => $request->description,
+            'category_id' => $request->category_id,
+        ];
+
+        // 2. Handle File Upload (Jika ada gambar baru)
         if ($request->hasFile('image')) {
-            // Hapus gambar lama
-            if ($artwork->image) {
+            // Hapus gambar lama jika ada
+            if ($artwork->image && Storage::disk('public')->exists($artwork->image)) {
                 Storage::disk('public')->delete($artwork->image);
             }
             // Simpan gambar baru
             $data['image'] = $request->file('image')->store('artworks', 'public');
         }
 
-        // 2. Proses Tags
-        $data['tags'] = $request->input('tags') ? explode(',', $request->input('tags')) : null;
+        // 3. Proses Tags
+        if ($request->filled('tags')) {
+            $tagsArray = explode(',', $request->input('tags'));
+            $data['tags'] = array_map('trim', $tagsArray);
+        } else {
+            $data['tags'] = null;
+        }
 
-        // 3. Update Artwork
+        // 4. Update Database
         $artwork->update($data);
 
         return redirect()->route('member.artworks.index')
-                         ->with('success', 'Karya berhasil diperbarui.');
+                         ->with('success', 'Artwork updated successfully.');
     }
 
     /**
@@ -124,8 +161,13 @@ class ArtworkController extends Controller
      */
     public function destroy(Artwork $artwork)
     {
+        // Security: Pastikan hanya pemilik yang bisa hapus
+        if ($artwork->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         // Hapus file gambar dari storage
-        if ($artwork->image) {
+        if ($artwork->image && Storage::disk('public')->exists($artwork->image)) {
             Storage::disk('public')->delete($artwork->image);
         }
 
@@ -133,6 +175,6 @@ class ArtworkController extends Controller
         $artwork->delete();
 
         return redirect()->route('member.artworks.index')
-                         ->with('success', 'Karya berhasil dihapus.');
+                         ->with('success', 'Artwork deleted successfully.');
     }
 }

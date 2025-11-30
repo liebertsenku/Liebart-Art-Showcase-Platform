@@ -1,130 +1,122 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Edit Artwork - LiebArt</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="font-sans antialiased bg-[#F5F4F2] text-gray-900">
-
-    <nav class="w-full bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <a href="/" class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-black rounded text-white flex items-center justify-center font-bold">L</div>
-                    <span class="font-bold text-xl tracking-tight">LiebArt</span>
-                </a>
-                <div class="flex items-center gap-4">
-                    <span class="text-sm text-gray-500">Hi, {{ Auth::user()->name }}</span>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <div class="py-12 px-4 sm:px-6">
-        <div class="max-w-3xl mx-auto">
+<x-app-layout>
+    <div class="py-12 bg-[#F5F4F2] min-h-screen">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            <div class="mb-8 flex justify-between items-end">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Edit Artwork</h1>
-                    <p class="text-gray-500 mt-2">Update details for "{{ $artwork->title }}"</p>
-                </div>
-                
-                <form action="{{ route('member.artworks.destroy', $artwork->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this artwork?');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="text-red-500 text-sm font-medium hover:text-red-700 underline decoration-red-200 underline-offset-4">
-                        Delete Artwork
-                    </button>
-                </form>
+            <div class="mb-8">
+                <a href="{{ route('member.artworks.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-black mb-4 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to My Artworks
+                </a>
+                <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Edit Artwork</h1>
+                <p class="text-gray-500 mt-1">Update details for "{{ $artwork->title }}"</p>
             </div>
 
-            <div class="bg-white rounded-[24px] shadow-sm p-8 sm:p-10 border border-gray-100">
+            <div class="bg-white rounded-[24px] shadow-sm p-8 border border-gray-100">
                 
-                <form action="{{ route('member.artworks.update', $artwork->id) }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    @method('PUT') <div class="mb-8" x-data="{ imagePreview: '{{ $artwork->image ? asset('storage/' . $artwork->image) : '' }}' }">
-                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Artwork Image</label>
-                        
-                        <div class="relative w-full h-80 rounded-2xl bg-[#F5F4F2] border-2 border-dashed border-gray-300 hover:border-black transition flex flex-col items-center justify-center overflow-hidden cursor-pointer group">
-                            
-                            <input type="file" name="image" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
-                                   accept="image/*"
-                                   @change="imagePreview = URL.createObjectURL($event.target.files[0])">
-                            
-                            <div class="text-center p-6" x-show="!imagePreview">
-                                <p class="text-gray-500">No image selected</p>
-                            </div>
-
-                            <img x-show="imagePreview" :src="imagePreview" class="absolute inset-0 w-full h-full object-contain p-4 bg-gray-100/50">
-                            
-                            <div class="absolute bottom-4 bg-black/70 text-white text-xs px-3 py-1 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition">
-                                Change Image
-                            </div>
+                @if($artwork->image)
+                    <div class="bg-blue-50 border border-blue-100 text-blue-800 p-4 rounded-xl flex items-center gap-3 mb-8">
+                        <span class="text-2xl">🎨</span>
+                        <div>
+                            <h3 class="font-bold">Editing Visual Art</h3>
+                            <p class="text-xs text-blue-600">This artwork includes a visual image file.</p>
                         </div>
-                        <x-input-error :messages="$errors->get('image')" class="mt-2" />
                     </div>
-
-                    <div class="mb-6">
-                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Title</label>
-                        <input type="text" name="title" value="{{ old('title', $artwork->title) }}" required
-                            class="w-full bg-[#F5F4F2] border-transparent focus:border-black focus:ring-0 rounded-xl px-4 py-3 text-gray-900 font-medium text-lg">
-                        <x-input-error :messages="$errors->get('title')" class="mt-2" />
+                @else
+                    <div class="bg-purple-50 border border-purple-100 text-purple-800 p-4 rounded-xl flex items-center gap-3 mb-8">
+                        <span class="text-2xl">📝</span>
+                        <div>
+                            <h3 class="font-bold">Editing Writing Piece</h3>
+                            <p class="text-xs text-purple-600">This is a text-based story, poem, or article.</p>
+                        </div>
                     </div>
+                @endif
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <form action="{{ route('member.artworks.update', $artwork->id) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                    @csrf
+                    @method('PUT')
+
+                    @if($artwork->image)
+                        <div x-data="{ bannerPreview: '{{ asset('storage/'.$artwork->image) }}' }">
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Current Artwork Image</label>
+                            
+                            <div class="flex items-center justify-center w-full">
+                                <label for="dropzone-file" class="relative flex flex-col items-center justify-center w-full h-72 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-[#F5F4F2] hover:border-black group transition overflow-hidden">
+                                    
+                                    <img :src="bannerPreview" class="absolute inset-0 w-full h-full object-cover rounded-xl">
+                                    
+                                    <div class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300 z-10 text-white p-4 text-center backdrop-blur-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                        </svg>
+                                        <span class="font-bold">Click to upload new image</span>
+                                        <span class="text-xs mt-1">(JPG, PNG. Max 2MB)</span>
+                                        <span class="text-xs text-gray-300 mt-2">Leave empty to keep current image.</span>
+                                    </div>
+
+                                    <input id="dropzone-file" type="file" name="image" class="hidden" accept="image/*"
+                                           @change="bannerPreview = URL.createObjectURL($event.target.files[0])" />
+                                </label>
+                            </div>
+                            <x-input-error :messages="$errors->get('image')" class="mt-2" />
+                        </div>
+                    @else
+                        <p class="text-sm text-gray-500 italic border-l-4 border-purple-200 pl-3 py-1">
+                            Note: You are editing a written piece. Image upload is disabled to maintain its format.
+                        </p>
+                    @endif
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Title</label>
+                            <input type="text" name="title" value="{{ old('title', $artwork->title) }}" required class="w-full bg-[#F5F4F2] border-transparent focus:border-black focus:ring-0 rounded-xl px-4 py-3 text-gray-900 font-medium placeholder-gray-400">
+                            <x-input-error :messages="$errors->get('title')" class="mt-2" />
+                        </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Category</label>
-                            <div class="relative">
-                                <select name="category_id" required class="w-full bg-[#F5F4F2] border-transparent focus:border-black focus:ring-0 rounded-xl px-4 py-3 text-gray-900 appearance-none">
-                                    @foreach($categories as $category)
-                                        <option value="{{ $category->id }}" {{ $artwork->category_id == $category->id ? 'selected' : '' }}>
-                                            {{ $category->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Tags</label>
-                            @php
-                                $tagsValue = '';
-                                if (isset($artwork->tags)) {
-                                    // Cek apakah sudah array (karena casts) atau masih string
-                                    $tagsArray = is_array($artwork->tags) ? $artwork->tags : json_decode($artwork->tags, true);
-                                    if(is_array($tagsArray)) {
-                                        $tagsValue = implode(', ', $tagsArray);
-                                    }
-                                }
-                            @endphp
-                            
-                            <input type="text" name="tags" value="{{ old('tags', $tagsValue) }}"
-                                class="w-full bg-[#F5F4F2] border-transparent focus:border-black focus:ring-0 rounded-xl px-4 py-3 text-gray-900"
-                                placeholder="Digital, Abstract (Comma separated)">
+                            <select name="category_id" required class="w-full bg-[#F5F4F2] border-transparent focus:border-black focus:ring-0 rounded-xl px-4 py-3 text-gray-900 cursor-pointer">
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat->id }}" {{ $artwork->category_id == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                                @endforeach
+                            </select>
+                            <x-input-error :messages="$errors->get('category_id')" class="mt-2" />
                         </div>
                     </div>
 
-                    <div class="mb-8">
-                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Description</label>
-                        <textarea name="description" rows="5" required
-                            class="w-full bg-[#F5F4F2] border-transparent focus:border-black focus:ring-0 rounded-xl px-4 py-3 text-gray-900 leading-relaxed">{{ old('description', $artwork->description) }}</textarea>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            {{ $artwork->image ? 'Description' : 'Your Story / Poem Content' }}
+                        </label>
+                        
+                        <textarea name="description" rows="{{ $artwork->image ? '6' : '12' }}"
+                            class="w-full bg-[#F5F4F2] border-transparent focus:border-black focus:ring-0 rounded-xl px-4 py-3 text-gray-900 leading-relaxed placeholder-gray-400 font-serif"
+                            placeholder="Write something here..." required>{{ old('description', $artwork->description) }}</textarea>
+                        
+                        <x-input-error :messages="$errors->get('description')" class="mt-2" />
+                        @if(!$artwork->image)
+                            <p class="text-xs text-gray-500 mt-2">Tip: Use line breaks to format your poetry or paragraphs nicely.</p>
+                        @endif
                     </div>
 
-                    <div class="flex items-center justify-end gap-4 border-t border-gray-100 pt-6">
-                        <a href="{{ route('member.artworks.index') }}" class="text-sm font-medium text-gray-500 hover:text-black transition">Cancel</a>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Tags</label>
+                        <input type="text" name="tags" value="{{ old('tags', $tagsString ?? '') }}" class="w-full bg-[#F5F4F2] border-transparent focus:border-black focus:ring-0 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-400" placeholder="e.g. abstract, nature, poetry (comma separated)">
+                        <p class="text-xs text-gray-500 mt-2">Separate tags with commas.</p>
+                    </div>
+
+
+                    <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-100">
+                        <a href="{{ route('member.artworks.index') }}" class="text-gray-500 font-bold hover:text-black px-4 py-2 transition">Cancel</a>
                         <button type="submit" class="bg-black text-white font-bold py-3 px-8 rounded-xl hover:bg-gray-800 transition shadow-lg shadow-gray-200">
                             Update Artwork
                         </button>
                     </div>
-
                 </form>
             </div>
         </div>
     </div>
-</body>
-</html>
+</x-app-layout>

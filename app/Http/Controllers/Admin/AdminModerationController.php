@@ -13,8 +13,8 @@ class AdminModerationController extends Controller
 {
     public function index()
     {
-        // Ambil laporan yang statusnya masih pending
-        $reports = ModerationReport::with(['reporter', 'artwork'])
+        // Ambil report pending, eager load relasi polimorfik
+        $reports = ModerationReport::with(['reporter', 'reportable'])
             ->where('status', 'pending')
             ->latest()
             ->paginate(10);
@@ -28,26 +28,35 @@ class AdminModerationController extends Controller
         $report = ModerationReport::findOrFail($id);
         
         DB::transaction(function () use ($report) {
-            // 1. Update Status Report
             $report->update(['status' => 'approved']);
 
-            // 2. Hapus Artwork (Soft Delete)
-            if ($report->artwork) {
-                $report->artwork->delete();
+            // Hapus Konten Berdasarkan Tipe
+            if ($report->reportable) {
+                
+                // Jika yang dilaporkan adalah ARTWORK
+                if ($report->reportable_type === 'App\Models\Artwork') {
+                    $report->reportable->delete(); // Soft Delete Artwork
+                    $details = 'Artwork deleted: ' . $report->reportable->title;
+                }
+                // Jika yang dilaporkan adalah COMMENT
+                elseif ($report->reportable_type === 'App\Models\Comment') {
+                    $report->reportable->delete(); // Delete Comment (biasanya hard delete atau soft delete jika disetting)
+                    $details = 'Comment deleted: ' . \Illuminate\Support\Str::limit($report->reportable->body, 20);
+                }
             }
 
-            // 3. Catat Log
+            // Catat Log
             \DB::table('moderation_logs')->insert([
                 'admin_id' => Auth::id(),
                 'report_id' => $report->id,
                 'action' => 'approve_report',
-                'details' => 'Artwork ID ' . $report->artwork_id . ' deleted due to violation: ' . $report->reason,
+                'details' => $details ?? 'Content already deleted',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         });
 
-        return back()->with('success', 'Laporan disetujui. Karya telah dihapus.');
+        return back()->with('success', 'Laporan disetujui. Konten telah dihapus.');
     }
 
     // Reject Report = Laporan Tidak Valid = Artwork Aman

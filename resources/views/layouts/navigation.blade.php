@@ -50,7 +50,7 @@
                                 Explore
                             </a>
                             <a href="{{ route('public.challenges.index') }}" class="text-sm font-medium text-gray-500 hover:text-black transition {{ request()->routeIs('public.challenges.*') ? 'text-black font-bold' : '' }}">
-                                Challenges 🏆
+                                Challenges 
                             </a>
                             <a href="{{ route('member.artworks.index') }}" class="text-sm font-medium text-gray-500 hover:text-black transition {{ request()->routeIs('member.artworks.*') ? 'text-black font-bold' : '' }}">
                                 My Works

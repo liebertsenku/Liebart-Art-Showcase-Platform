@@ -14,22 +14,31 @@ class InteractionController extends Controller
     // --- LIKE SYSTEM ---
     public function toggleLike(Artwork $artwork)
     {
-        if ($artwork->user_id === Auth::id()) {
-            return back()->with('error', 'Anda tidak bisa menyukai karya sendiri.');
-        }
-
         $user = Auth::user();
-        if ($user->hasLiked($artwork)) {
-            $user->likes()->detach($artwork->id);
-            $message = 'Like dihapus.';
-        } else {
-            $user->likes()->attach($artwork->id);
-            $message = 'Artwork disukai!';
+
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
         }
 
-        return back()->with('success', $message);
-    }
+        // 2. Gunakan Toggle (Ini mendeteksi otomatis: Ada -> Hapus, Tidak Ada -> Tambah)
+        // toggle() mengembalikan array ['attached' => [], 'detached' => []]
+        $changes = $user->likes()->toggle($artwork->id);
 
+        // 3. Cek Status Sebenarnya dari Hasil Toggle
+        // Jika ada ID di array 'attached', berarti BARU SAJA DI-LIKE.
+        // Jika tidak, berarti baru saja di-UNLIKE.
+        $isLikedNow = count($changes['attached']) > 0;
+
+        // 4. Hitung Ulang Jumlah Like Real-time
+        $totalLikes = $artwork->likes()->count();
+
+        return response()->json([
+            'status' => 'success',
+            'liked' => $isLikedNow, // Status akurat dari DB (true/false)
+            'count' => $totalLikes  // Jumlah akurat dari DB
+        ]);
+    }
+    
     // --- FAVORITE SYSTEM ---
     public function toggleFavorite(Artwork $artwork)
     {
@@ -77,12 +86,31 @@ class InteractionController extends Controller
 
         $request->validate(['reason' => 'required|string']);
 
-        ModerationReport::create([
+        // Gunakan relasi reports() dari model Artwork langsung
+        $artwork->reports()->create([
             'reporter_id' => Auth::id(),
-            'artwork_id' => $artwork->id,
             'reason' => $request->reason,
+            'status' => 'pending'
         ]);
 
-        return back()->with('success', 'Laporan dikirim ke Admin.');
+        return back()->with('success', 'Laporan artwork dikirim ke Admin.');
+    }
+
+    public function reportComment(Request $request, Comment $comment)
+    {
+        if ($comment->user_id === Auth::id()) {
+            return back()->with('error', 'Anda tidak bisa melaporkan komentar sendiri.');
+        }
+
+        $request->validate(['reason' => 'required|string']);
+
+        // Simpan laporan untuk komentar
+        $comment->reports()->create([
+            'reporter_id' => Auth::id(),
+            'reason' => $request->reason,
+            'status' => 'pending'
+        ]);
+
+        return back()->with('success', 'Laporan komentar dikirim ke Admin.');
     }
 }

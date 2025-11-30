@@ -30,13 +30,14 @@
 
             <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-gray-100 text-xs uppercase tracking-wider text-gray-400 font-bold">
-                                <th class="px-8 py-6">Artwork</th>
-                                <th class="px-6 py-6">Category</th>
-                                <th class="px-6 py-6">Uploaded</th>
-                                <th class="px-8 py-6 text-right">Actions</th>
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-8 py-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Artwork</th>
+                                <th class="px-6 py-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Category</th>
+                                <th class="px-6 py-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Type</th>
+                                <th class="px-6 py-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Uploaded</th>
+                                <th class="px-8 py-6 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
@@ -45,17 +46,18 @@
                                     
                                     <td class="px-8 py-5">
                                         <div class="flex items-center gap-4">
-                                            <div class="w-20 h-14 bg-gray-100 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
+                                            <div class="w-20 h-14 bg-gray-100 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0 flex items-center justify-center">
                                                 @if($artwork->image)
                                                     <img src="{{ asset('storage/' . $artwork->image) }}" alt="{{ $artwork->title }}" class="w-full h-full object-cover">
                                                 @else
-                                                    <div class="w-full h-full flex items-center justify-center text-gray-300">
-                                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                    <div class="text-gray-400 bg-gray-50 w-full h-full flex flex-col items-center justify-center">
+                                                        <span class="text-xl">📝</span>
                                                     </div>
                                                 @endif
                                             </div>
-                                            <div>
-                                                <div class="font-bold text-gray-900 text-lg leading-tight">{{ $artwork->title }}</div>
+                                            
+                                            <div class="min-w-0">
+                                                <div class="font-bold text-gray-900 text-lg leading-tight truncate max-w-xs">{{ $artwork->title }}</div>
                                                 <div class="text-xs text-gray-400 mt-1">ID: #{{ $artwork->id }}</div>
                                             </div>
                                         </div>
@@ -65,6 +67,14 @@
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#F5F4F2] text-gray-600">
                                             {{ $artwork->category->name ?? 'Uncategorized' }}
                                         </span>
+                                    </td>
+
+                                    <td class="px-6 py-5">
+                                        @if($artwork->image)
+                                            <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">Visual</span>
+                                        @else
+                                            <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded">Writing</span>
+                                        @endif
                                     </td>
 
                                     <td class="px-6 py-5">
@@ -105,7 +115,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-8 py-16 text-center">
+                                    <td colspan="5" class="px-8 py-16 text-center">
                                         <div class="flex flex-col items-center justify-center">
                                             <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">

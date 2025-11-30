@@ -19,7 +19,7 @@ return new class extends Migration
             // Foreign key untuk Category
             $table->foreignId('category_id')->constrained('categories')->onDelete('restrict');
             
-            $table->string('image'); // Path ke file: "artworks/namafile.jpg"
+            $table->string('image')->nullable(); // Path ke file: "artworks/namafile.jpg"
             
             // Rekomendasi: Gunakan JSON untuk Tags
             // Ini lebih fleksibel daripada string yang dipisah koma
