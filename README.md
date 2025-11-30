@@ -1,59 +1,184 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Liebart Art-Showcase-System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+------------------------------------------------------------------------
 
-## About Laravel
+## Layout
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+###  Halaman Utama & Galeri
+Galeri karya seni digital yang dapat diakses publik dengan filter
+kategori dan pencarian.
 
-## Learning Laravel
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+###  Profil Kreator (Member)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Portofolio member menampilkan karya, bio, dan tautan sosial media.
 
-## Laravel Sponsors
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
 
-### Premium Partners
+###  Detail Challenge
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Halaman kompetisi lengkap dengan aturan, hadiah, dan galeri submission.
 
-## Contributing
+### Dashboard Admin
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Pusat kontrol untuk moderasi konten, statistik, dan manajemen pengguna.
 
-## Code of Conduct
+------------------------------------------------------------------------
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Daftar Isi
 
-## Security Vulnerabilities
+-   🎯 Tentang Proyek
+-   👥 Peran Pengguna
+-   ✨ Fitur Utama
+-   🛠 Teknologi
+-   🚀 Instalasi
+-   📂 Struktur Proyek
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+------------------------------------------------------------------------
 
-## License
+# 🎯 Tentang Proyek
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**LiebArt** adalah platform showcase karya seni digital yang dirancang
+untuk menjadi wadah bagi kreator (Member) untuk memamerkan portofolio
+mereka dan bagi pengguna lain untuk menemukan inspirasi.
+
+Sistem ini menghubungkan kreator dengan audiens melalui fitur interaktif
+seperti **Likes, Komentar, dan Favorites**. Keamanan komunitas dijaga
+ketat melalui **sistem moderasi konten (Report System)** dan **validasi
+akun kurator**.
+
+### Nilai Utama
+
+✅ **Multi-Role System**\
+✅ **Community Engagement**\
+✅ **Creative Challenges**\
+✅ **Content Safety**
+
+------------------------------------------------------------------------
+
+##  Peran Pengguna
+
+### 1.  Admin
+
+-   Moderasi laporan konten\
+-   Menghapus konten melanggar\
+-   Manajemen Member & Curator\
+-   CRUD kategori seni\
+-   Dashboard statistik
+
+### 2.  Member (Creator)
+
+-   Upload/Edit/Hapus artwork\
+-   Kelola profil\
+-   Interaksi sosial\
+-   Submit challenge
+
+### 3.  Curator
+
+-   Pendaftaran khusus & approval Admin\
+-   Manajemen challenge\
+-   Penjurian pemenang\
+-   Dashboard
+
+### 4.  Guest
+
+-   Melihat galeri & challenge publik
+
+------------------------------------------------------------------------
+
+##  Fitur Utama
+
+###  Manajemen Karya
+
+-   Gambar & teks\
+-   Smart display\
+-   Kategori/tag
+
+###  Interaksi & Sosial
+
+-   Like & favorite (real-time)\
+-   Komentar\
+-   Sistem report polymorphic
+
+###  Sistem Challenge
+
+-   Event & banner\
+-   Submission dari portofolio\
+-   Validasi anti submit ganda\
+-   Hall of Fame
+
+------------------------------------------------------------------------
+
+##  Teknologi
+
+### Backend
+
+-   Laravel 11\
+-   PHP 8+\
+-   MySQL
+
+### Frontend
+
+-   Blade\
+-   Tailwind CSS\
+-   Alpine.js
+
+------------------------------------------------------------------------
+
+##  Instalasi
+
+#### 1️⃣ Clone Repo
+
+    git clone https://github.com/username/liebart-platform.git
+    cd liebart-platform
+
+#### 2️⃣ Install Dependencies
+
+    composer install
+    npm install
+
+#### 3️⃣ Setup ENV
+
+    cp .env.example .env
+    php artisan key:generate
+
+#### 4️⃣ Migrasi & Seeder
+
+    php artisan migrate:fresh --seed
+
+#### 5️⃣ Storage
+
+    php artisan storage:link
+
+#### 6️⃣ Jalankan
+
+Backend:
+
+    php artisan serve
+
+Frontend:
+
+    npm run dev
+
+------------------------------------------------------------------------
+
+## 📂 Struktur Proyek
+
+    liebart/
+    ├── app/
+    │   ├── Http/Controllers/
+    │   ├── Models/
+    │   └── Policies/
+    ├── database/
+    │   ├── migrations/
+    │   └── seeders/
+    ├── resources/
+    │   ├── views/
+    │   └── css/
+    └── routes/
+        ├── web.php
+        └── auth.php
+
+------------------------------------------------------------------------
