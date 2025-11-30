@@ -8,32 +8,45 @@
                 </div>
                 <div>
                     <h1 class="text-4xl font-bold text-gray-900 tracking-tight">Your Favorites</h1>
-                    <p class="text-gray-500 mt-1">Collection of artworks you love.</p>
+                    <p class="text-gray-500 mt-1">Collection of artworks and stories you love.</p>
                 </div>
             </div>
 
             @if($artworks->count() > 0)
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     @foreach($artworks as $artwork)
-                        <div class="bg-white rounded-[20px] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 group relative">
-                            <div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">
-                                <a href="{{ route('artworks.show', $artwork) }}">
-                                    <img src="{{ asset('storage/' . $artwork->image) }}" class="w-full h-full object-cover transform group-hover:scale-105 transition duration-700">
+                        <div class="bg-white rounded-[20px] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 group relative flex flex-col h-full">
+                            
+                            <div class="relative aspect-[4/3] bg-gray-100 overflow-hidden group/media">
+                                <a href="{{ route('artworks.show', $artwork) }}" class="block w-full h-full">
+                                    @if($artwork->image)
+                                        <img src="{{ asset('storage/' . $artwork->image) }}" class="w-full h-full object-cover transform group-hover/media:scale-105 transition duration-700">
+                                    @else
+                                        <div class="w-full h-full p-6 flex flex-col justify-center items-center text-center bg-white border-b border-gray-50 group-hover/media:bg-gray-50 transition">
+                                            <span class="text-4xl text-gray-200 mb-2 font-serif">❝</span>
+                                            <p class="text-gray-800 font-serif text-sm leading-relaxed line-clamp-4 italic">
+                                                {{ $artwork->description }}
+                                            </p>
+                                            <span class="mt-auto text-[10px] uppercase tracking-widest text-gray-400 font-bold pt-4">Written Piece</span>
+                                        </div>
+                                    @endif
                                 </a>
                             </div>
-                            <div class="p-4">
-                                <h3 class="font-bold text-gray-900 truncate">
+
+                            <div class="p-4 flex-1 flex flex-col">
+                                <h3 class="font-bold text-gray-900 truncate mb-1">
                                     <a href="{{ route('artworks.show', $artwork) }}">{{ $artwork->title }}</a>
                                 </h3>
-                                <div class="flex items-center gap-2 mt-2">
-                                    <div class="w-5 h-5 rounded-full bg-gray-200 overflow-hidden">
+                                
+                                <div class="mt-auto pt-3 border-t border-gray-50 flex items-center gap-2">
+                                    <div class="w-5 h-5 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
                                         @if($artwork->user->profile_photo_path)
                                             <img src="{{ asset('storage/'.$artwork->user->profile_photo_path) }}" class="w-full h-full object-cover">
                                         @else
                                             <div class="w-full h-full bg-black flex items-center justify-center text-[8px] text-white font-bold">{{ substr($artwork->user->name, 0, 1) }}</div>
                                         @endif
                                     </div>
-                                    <span class="text-xs text-gray-500">{{ $artwork->user->name }}</span>
+                                    <span class="text-xs text-gray-500 truncate">{{ $artwork->user->name }}</span>
                                 </div>
                             </div>
                         </div>

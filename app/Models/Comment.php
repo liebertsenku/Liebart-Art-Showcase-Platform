@@ -8,4 +8,10 @@ class Comment extends Model
 {
     protected $fillable = ['user_id', 'artwork_id', 'body'];
     public function user() { return $this->belongsTo(User::class); }
+
+    
+    public function reports()
+    {
+        return $this->morphMany(ModerationReport::class, 'reportable');
+    }
 }

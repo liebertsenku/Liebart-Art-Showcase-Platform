@@ -18,8 +18,11 @@ class ProfileUpdateRequest extends FormRequest
         return [
         'name' => ['required', 'string', 'max:255'],
         'email' => ['required', 'string', 'lowercase', 'email', 'max:255', \Illuminate\Validation\Rule::unique(\App\Models\User::class)->ignore($this->user()->id)],
-        'photo' => ['nullable', 'image', 'max:2048'], // Validasi gambar
-        'bio' => ['nullable', 'string', 'max:500'],    // Validasi bio
+        'photo' => ['nullable', 'image', 'max:2048'], 
+        'bio' => ['nullable', 'string', 'max:500'], 
+        'instagram' => ['nullable', 'string', 'max:255'],
+        'behance' => ['nullable', 'string', 'max:255'],
+        'website' => ['nullable', 'url', 'max:255'],   
     ];
     }
 }

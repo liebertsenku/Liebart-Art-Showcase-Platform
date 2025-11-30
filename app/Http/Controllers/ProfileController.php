@@ -50,6 +50,9 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $user->fill($request->validated());
+        $user->instagram = $request->input('instagram');
+        $user->behance = $request->input('behance');
+        $user->website = $request->input('website');
 
         // --- UPDATE FOTO PROFIL ---
         if ($request->hasFile('photo')) {

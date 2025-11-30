@@ -50,7 +50,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'external_links' => 'array', // Otomatis cast JSON ke array
+            'external_links' => 'array',
+            'instagram', 'behance', 'website',
         ];
     }
     
@@ -100,5 +101,10 @@ class User extends Authenticatable
     public function isApprovedCurator()
     {
         return $this->role === 'curator' && $this->curatorProfile?->status === 'approved';
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
     }
 }

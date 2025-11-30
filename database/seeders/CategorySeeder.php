@@ -22,6 +22,7 @@ class CategorySeeder extends Seeder
             'Desain Grafis',
             'Motion Graphics',
             'Seni Lukis',
+            'Puisi',
         ];
 
         foreach ($categories as $categoryName) {

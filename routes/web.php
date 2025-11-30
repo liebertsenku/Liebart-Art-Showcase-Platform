@@ -31,46 +31,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-favorites', [ArtworkPublicController::class, 'favorites'])->name('artworks.favorites');
 });
 
-// Route::get('/member/{id}', [ProfileController::class, 'show'])->name('member.show');
 
 // == ROUTE MEMBER ARTWORKS (CRUD) ==
-Route::middleware(['auth', 'role:member']) // Cek login & role member
-    ->prefix('member')                     // URL awalan: /member/...
-    ->name('member.')                      // Nama route awalan: member....
+Route::middleware(['auth', 'role:member']) 
+    ->prefix('member')                     
+    ->name('member.')                      
     ->group(function () {
         
-        // Ini akan otomatis membuat route:
-        // index   -> member.artworks.index
-        // create  -> member.artworks.create
-        // store   -> member.artworks.store
-        // edit    -> member.artworks.edit
-        // update  -> member.artworks.update
-        // destroy -> member.artworks.destroy
         Route::resource('artworks', ArtworkController::class);
         
     });
 
     Route::get('/artworks', [ArtworkPublicController::class, 'index'])->name('artworks.index');
-
-
-// == 1. ROOT ROUTE (DISPATCHER) ==
-// Route::get('/', function () {
-//     // A. Jika User Sudah Login
-//     if (Auth::check()) {
-//         $user = Auth::user();
-
-//         // Cek Role Admin
-//         if ($user->role === 'admin' || (method_exists($user, 'isAdmin') && $user->isAdmin())) { 
-//             return redirect()->route('admin.dashboard');
-//         }
-
-//         // Jika Member/Curator -> Ke Profil Sendiri
-//         return redirect()->route('member.show', $user->id);
-//     }
-
-//     // B. Jika Belum Login -> Ke Halaman Login
-//     return redirect()->route('login');
-// })->name('home');
 
 // == ADMIN ROUTES ==
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -114,7 +86,6 @@ Route::middleware(['auth', 'role:curator', 'curator.approved'])->prefix('curator
         return view('curator.dashboard.index');
     })->name('dashboard');
     
-    // Nanti CRUD Challenge Curator ditaruh di sini
 });
 
 // ROUTE CURATOR (Lanjutan dari sebelumnya)
@@ -167,7 +138,7 @@ Route::middleware(['auth', 'role:curator', 'curator.approved'])
 Route::get('/member/{id}', [ProfileController::class, 'show'])->name('profile.show');
 
 
-// == 2. ROUTE PUBLIK PROFILE (INI YANG HILANG SEBELUMNYA) ==
+// == 2. ROUTE PUBLIK PROFILE ==
 // Route ini menangani halaman profil publik (Portfolio)
 // URL-nya /member/{id}, tapi nama routenya kita set 'profile.show' sesuai request Anda
 Route::get('/member/{id}', [ProfileController::class, 'show'])->name('member.show');
@@ -194,14 +165,6 @@ Route::middleware(['auth', 'role:curator', 'curator.approved'])->prefix('curator
 });
 
 
-// // == 5. ADMIN ROUTES ==
-// Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-//     Route::get('/dashboard', function() {
-//         return view('admin.dashboard');
-//     })->name('dashboard');
-// });
-
-
 // == 6. ARTWORK CRUD ROUTES ==
 Route::middleware(['auth', 'role:member'])->prefix('member')->name('member.')->group(function () {
     Route::resource('artworks', ArtworkController::class);
@@ -223,6 +186,7 @@ Route::middleware(['auth', 'role:member'])->group(function () {
     
     // Report
     Route::post('/artworks/{artwork}/report', [InteractionController::class, 'storeReport'])->name('artworks.report');
+    Route::post('/comments/{comment}/report', [InteractionController::class, 'reportComment'])->name('comments.report');
 
     // --- Challenge Submission ---
     Route::get('/challenges/{challenge}/submit', [ChallengeSubmissionController::class, 'create'])->name('challenges.submit.form');

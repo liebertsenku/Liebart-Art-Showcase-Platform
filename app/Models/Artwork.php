@@ -59,6 +59,6 @@ class Artwork extends Model
     // Relasi Reports
     public function reports()
     {
-        return $this->hasMany(ModerationReport::class);
+        return $this->morphMany(ModerationReport::class, 'reportable');
     }
 }
