@@ -13,6 +13,11 @@ class ChallengeSubmission extends Model
         return $this->belongsTo(Artwork::class);
     }
 
+    public function challenge()
+    {
+        return $this->belongsTo(Challenge::class);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class); // Member yang submit

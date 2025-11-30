@@ -78,12 +78,14 @@
                                         </div>
                                         <img src="{{ asset('storage/' . $winners[$pos]->submission->artwork->image) }}" class="w-10 h-10 rounded-lg object-cover bg-gray-200 border border-white shadow-sm">
                                         
-                                        <form action="{{ route('curator.challenges.remove_winner', ['challenge' => $challenge->id, 'position' => $pos]) }}" method="POST" onsubmit="return confirm('Remove this winner?');">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="text-gray-400 hover:text-red-500 ml-2 p-1 hover:bg-red-50 rounded-full transition" title="Remove Winner">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                            </button>
-                                        </form>
+                                        @if($challenge->computed_status !== 'ended')
+                                            <form action="{{ route('curator.challenges.remove_winner', ['challenge' => $challenge->id, 'position' => $pos]) }}" method="POST" onsubmit="return confirm('Remove this winner?');">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="text-gray-400 hover:text-red-500 ml-2 p-1 hover:bg-red-50 rounded-full transition" title="Remove Winner">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                </button>
+                                            </form>
+                                        @endif
                                     @else
                                         <div class="flex-1 text-xs text-gray-400 italic">Empty Spot</div>
                                     @endif
@@ -112,37 +114,41 @@
                     @if($submissions->count() > 0)
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             @foreach($submissions as $sub)
-                                <div class="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm group relative">
+                                <div class="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm group relative hover:shadow-md transition-all duration-300">
                                     
                                     <div class="relative h-56 bg-gray-200">
                                         <img src="{{ asset('storage/' . $sub->artwork->image) }}" class="w-full h-full object-cover">
                                         
                                         @if(Auth::id() === $challenge->curator_id)
                                             <div class="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col items-center justify-center gap-3 p-4 z-10 backdrop-blur-sm">
-                                                <p class="text-white text-xs font-bold uppercase tracking-wider">Select Position</p>
                                                 
-                                                <div class="flex gap-3">
-                                                    @foreach([1, 2, 3] as $pos)
-                                                        <form action="{{ route('curator.challenges.select_winner', $challenge->id) }}" method="POST">
-                                                            @csrf
-                                                            <input type="hidden" name="submission_id" value="{{ $sub->id }}">
-                                                            <input type="hidden" name="position" value="{{ $pos }}">
-                                                            
-                                                            <button type="submit" class="w-10 h-10 rounded-full font-bold flex items-center justify-center transition transform hover:scale-110 shadow-lg border-2 
-                                                                {{ isset($winners[$pos]) && $winners[$pos]->submission_id == $sub->id 
-                                                                    ? 'bg-green-500 text-white border-green-400 ring-2 ring-green-200' 
-                                                                    : ($pos == 1 ? 'bg-yellow-400 text-yellow-900 border-yellow-300' : ($pos == 2 ? 'bg-gray-300 text-gray-900 border-gray-200' : 'bg-orange-400 text-white border-orange-300')) 
-                                                                }}" title="Select as Winner #{{ $pos }}">
+                                                @if($challenge->computed_status !== 'ended')
+                                                    <p class="text-white text-xs font-bold uppercase tracking-wider">Select Position</p>
+                                                    <div class="flex gap-3">
+                                                        @foreach([1, 2, 3] as $pos)
+                                                            <form action="{{ route('curator.challenges.select_winner', $challenge->id) }}" method="POST">
+                                                                @csrf
+                                                                <input type="hidden" name="submission_id" value="{{ $sub->id }}">
+                                                                <input type="hidden" name="position" value="{{ $pos }}">
                                                                 
-                                                                @if(isset($winners[$pos]) && $winners[$pos]->submission_id == $sub->id)
-                                                                    ✓
-                                                                @else
-                                                                    {{ $pos }}
-                                                                @endif
-                                                            </button>
-                                                        </form>
-                                                    @endforeach
-                                                </div>
+                                                                <button type="submit" class="w-10 h-10 rounded-full font-bold flex items-center justify-center transition transform hover:scale-110 shadow-lg border-2 
+                                                                    {{ isset($winners[$pos]) && $winners[$pos]->submission_id == $sub->id 
+                                                                        ? 'bg-green-500 text-white border-green-400 ring-2 ring-green-200' 
+                                                                        : ($pos == 1 ? 'bg-yellow-400 text-yellow-900 border-yellow-300' : ($pos == 2 ? 'bg-gray-300 text-gray-900 border-gray-200' : 'bg-orange-400 text-white border-orange-300')) 
+                                                                    }}" title="Select as Winner #{{ $pos }}">
+                                                                    
+                                                                    @if(isset($winners[$pos]) && $winners[$pos]->submission_id == $sub->id)
+                                                                        ✓
+                                                                    @else
+                                                                        {{ $pos }}
+                                                                    @endif
+                                                                </button>
+                                                            </form>
+                                                        @endforeach
+                                                    </div>
+                                                @else
+                                                    <p class="text-gray-300 text-xs font-bold uppercase tracking-wider border border-gray-500 px-3 py-1 rounded-full">Challenge Locked</p>
+                                                @endif
 
                                                 <a href="{{ route('artworks.show', $sub->artwork->id) }}" target="_blank" class="mt-4 text-white text-xs underline hover:text-gray-300 flex items-center gap-1">
                                                     View Full Artwork 

@@ -76,8 +76,12 @@
                                         <div class="inline-block w-10 h-10 rounded-full bg-yellow-400 text-yellow-900 font-bold text-xl flex items-center justify-center mb-3 mx-auto shadow-lg">
                                             {{ $winner->position }}
                                         </div>
-                                        <div class="aspect-square rounded-xl overflow-hidden mb-3 bg-gray-200">
-                                            <img src="{{ asset('storage/'.$winner->submission->artwork->image) }}" class="w-full h-full object-cover">
+                                        <div class="aspect-square rounded-xl overflow-hidden mb-3 bg-gray-200 flex items-center justify-center">
+                                            @if($winner->submission->artwork->image)
+                                                <img src="{{ asset('storage/'.$winner->submission->artwork->image) }}" class="w-full h-full object-cover">
+                                            @else
+                                                <span class="text-4xl">📝</span>
+                                            @endif
                                         </div>
                                         <h4 class="font-bold text-gray-900 truncate">{{ $winner->submission->artwork->title }}</h4>
                                         <p class="text-xs text-gray-500">{{ $winner->submission->user->name }}</p>
@@ -93,9 +97,18 @@
                         @if($submissions->count() > 0)
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                                 @foreach($submissions as $sub)
-                                    <a href="{{ route('artworks.show', $sub->artwork->id) }}" class="group block relative aspect-square bg-gray-200 rounded-xl overflow-hidden">
-                                        <img src="{{ asset('storage/'.$sub->artwork->image) }}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
-                                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-300"></div>
+                                    <a href="{{ route('artworks.show', $sub->artwork->id) }}" class="group block relative aspect-square bg-gray-200 rounded-xl overflow-hidden border border-gray-200">
+                                        @if($sub->artwork->image)
+                                            <img src="{{ asset('storage/'.$sub->artwork->image) }}" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-500">
+                                        @else
+                                            <div class="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-white group-hover:bg-gray-50 transition">
+                                                <span class="text-2xl text-gray-300 font-serif mb-2">❝</span>
+                                                <p class="text-xs text-gray-600 font-serif line-clamp-3 italic">{{ $sub->artwork->description }}</p>
+                                            </div>
+                                        @endif
+
+                                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition duration-300"></div>
+                                        
                                         <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition duration-300">
                                             <p class="text-white text-xs font-bold truncate">{{ $sub->artwork->title }}</p>
                                             <p class="text-gray-300 text-[10px]">{{ $sub->user->name }}</p>
@@ -138,17 +151,26 @@
                                     <p class="text-green-700 text-sm mb-4">You have joined this challenge.</p>
                                     
                                     <div class="bg-white p-3 rounded-xl shadow-sm border border-green-100 mb-4 text-left flex items-center gap-3">
-                                        <img src="{{ asset('storage/'.$mySubmission->artwork->image) }}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
-                                        <div>
+                                        <div class="w-12 h-12 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                            @if($mySubmission->artwork->image)
+                                                <img src="{{ asset('storage/'.$mySubmission->artwork->image) }}" class="w-full h-full object-cover">
+                                            @else
+                                                <span class="text-lg">📝</span>
+                                            @endif
+                                        </div>
+                                        <div class="min-w-0">
                                             <div class="font-bold text-sm text-gray-900 truncate">{{ $mySubmission->artwork->title }}</div>
                                             <div class="text-xs text-gray-500">{{ $mySubmission->created_at->diffForHumans() }}</div>
                                         </div>
                                     </div>
 
                                     @if($challenge->computed_status !== 'ended')
-                                        <form action="{{ route('challenges.submission.destroy', $mySubmission->id) }}" method="POST" onsubmit="return confirm('Withdraw your submission?');">
-                                            @csrf @method('DELETE')
-                                            <button class="text-red-500 text-xs font-bold underline hover:text-red-700">Withdraw Submission</button>
+                                        <form action="{{ route('challenges.submission.destroy', $mySubmission->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to withdraw your submission?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-500 text-xs font-bold underline hover:text-red-700 transition focus:outline-none">
+                                                Withdraw Submission
+                                            </button>
                                         </form>
                                     @endif
                                 </div>
@@ -173,14 +195,19 @@
                                                 <div class="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                                                     @foreach($myArtworks as $art)
                                                         <label class="cursor-pointer block relative group">
-                                                            
                                                             <input type="radio" name="artwork_id" value="{{ $art->id }}" class="peer sr-only" required>
                                                             
                                                             <div class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl transition 
                                                                         hover:border-gray-400 
                                                                         peer-checked:border-black peer-checked:ring-1 peer-checked:ring-black peer-checked:bg-gray-50">
                                                                 
-                                                                <img src="{{ asset('storage/'.$art->image) }}" class="w-10 h-10 rounded-lg object-cover bg-gray-100">
+                                                                <div class="w-10 h-10 rounded-lg bg-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                                                    @if($art->image)
+                                                                        <img src="{{ asset('storage/'.$art->image) }}" class="w-full h-full object-cover">
+                                                                    @else
+                                                                        <span class="text-lg">📝</span>
+                                                                    @endif
+                                                                </div>
                                                                 
                                                                 <div class="flex-1 min-w-0">
                                                                     <div class="text-sm font-bold text-gray-900 truncate">{{ $art->title }}</div>
